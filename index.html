@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Algebra for AI 04 &mdash; Inner Products, Norms &amp; Geometry</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+    <style>
+        :root { --bg-primary: #0a0a0a; --bg-card: #0d1117; --bg-code: #161b22; --text-primary: #e6edf3; --text-secondary: #8b949e; --accent: #a78bfa; --accent-dim: #a78bfa44; --accent-glow: #a78bfa33; --accent-2: #f472b6; --accent-3: #fbbf24; --accent-4: #34d399; --border: #21262d; --font-display: 'Space Grotesk', sans-serif; --font-mono: 'JetBrains Mono', 'Fira Code', monospace; --font-body: 'Inter', sans-serif; --max-width: 900px; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-body); font-size: 17px; line-height: 1.7; overflow-x: hidden; }
+        .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2rem 1.5rem; text-align: center; position: relative; }
+        .hero::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 700px; height: 600px; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+        .hero > * { position: relative; z-index: 1; }
+        .series-label { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1rem; }
+        .hero h1 { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; color: var(--text-primary); line-height: 1.2; margin-bottom: 1rem; }
+        .hero h1 .accent { color: var(--accent); }
+        .hero .subtitle { font-size: 1.1rem; color: var(--text-secondary); max-width: 640px; margin-bottom: 2rem; }
+        .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2.5rem; }
+        .tag { font-family: var(--font-mono); font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 999px; border: 1px solid var(--accent); color: var(--accent); background: var(--accent-dim); white-space: nowrap; }
+        .pipeline { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.25rem; margin-bottom: 1rem; max-width: var(--max-width); }
+        .pipeline-step { font-family: var(--font-mono); font-size: 0.7rem; padding: 0.3rem 0.7rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; color: var(--text-secondary); white-space: nowrap; }
+        .pipeline-arrow { color: var(--accent); font-size: 0.9rem; font-weight: 700; }
+        .slide { min-height: 100vh; max-width: var(--max-width); margin: 0 auto; padding: 4rem 1.5rem; position: relative; display: flex; flex-direction: column; justify-content: center; }
+        .slide-number { font-family: var(--font-display); font-size: 5rem; font-weight: 700; color: var(--accent-dim); position: absolute; top: 2rem; right: 1.5rem; line-height: 1; user-select: none; }
+        .slide h2 { font-family: var(--font-display); font-size: 1.9rem; font-weight: 700; color: var(--accent); margin-bottom: 1.5rem; line-height: 1.25; }
+        .slide h3 { font-family: var(--font-display); font-size: 1.3rem; font-weight: 600; color: var(--text-primary); margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .slide p { margin-bottom: 1rem; color: var(--text-secondary); }
+        .slide p strong { color: var(--text-primary); }
+        .slide ul, .slide ol { margin-bottom: 1rem; padding-left: 1.5rem; color: var(--text-secondary); }
+        .slide li { margin-bottom: 0.4rem; }
+        .slide li strong { color: var(--text-primary); }
+        .slide code { background: var(--bg-code); padding: 0.1rem 0.35rem; border-radius: 3px; font-family: var(--font-mono); font-size: 0.85em; color: var(--accent); }
+        .table-wrap { overflow-x: auto; margin: 1.25rem 0; border-radius: 8px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { background: var(--bg-code); color: var(--accent); font-weight: 600; text-align: left; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); font-family: var(--font-display); white-space: nowrap; }
+        td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) td { background: rgba(13, 17, 23, 0.5); }
+        .diagram-grid { display: grid; gap: 0.75rem; margin: 1.5rem 0; padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; }
+        .diagram-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+        .diagram-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .diagram-panel { padding: 1rem; background: var(--bg-code); border: 1px solid var(--border); border-radius: 6px; }
+        .diagram-panel.accent-border { border-left: 3px solid var(--accent); }
+        .diagram-panel.r { border-left: 3px solid var(--accent-2); }
+        .diagram-panel.y { border-left: 3px solid var(--accent-3); }
+        .diagram-panel.g { border-left: 3px solid var(--accent-4); }
+        .diagram-panel h4 { font-family: var(--font-display); font-size: 1rem; color: var(--accent); margin-bottom: 0.5rem; }
+        .diagram-panel.r h4 { color: var(--accent-2); } .diagram-panel.y h4 { color: var(--accent-3); } .diagram-panel.g h4 { color: var(--accent-4); }
+        .diagram-panel p, .diagram-panel ul { font-size: 0.9rem; }
+        .callout { background: var(--bg-card); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 1rem 1.25rem; margin: 1.25rem 0; }
+        .callout p { margin-bottom: 0; }
+        .callout .callout-label { font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.3rem; }
+        .canvas-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin: 1.25rem 0; overflow-x: auto; }
+        .canvas-wrap canvas, .canvas-wrap svg { display: block; margin: 0 auto; max-width: 100%; }
+        .control-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin: 1.25rem 0; }
+        .control-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .control-row label { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary); min-width: 130px; }
+        .control-row input[type="range"] { flex: 1; min-width: 150px; accent-color: var(--accent); }
+        .control-row select, .control-row input[type="number"] { background: var(--bg-code); border: 1px solid var(--border); color: var(--text-primary); border-radius: 4px; padding: 0.3rem 0.5rem; font-family: var(--font-mono); font-size: 0.8rem; }
+        .control-row .val { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 80px; text-align: right; }
+        .btn { font-family: var(--font-mono); font-size: 0.8rem; padding: 0.4rem 0.9rem; background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; cursor: pointer; transition: background 0.15s ease; }
+        .btn:hover { background: rgba(167,139,250,0.25); }
+        .btn.secondary { background: var(--bg-code); color: var(--text-secondary); border-color: var(--border); }
+        .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.5rem; margin-top: 0.75rem; }
+        .metric { background: var(--bg-code); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.8rem; text-align: center; }
+        .metric .metric-label { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; }
+        .metric .metric-value { font-family: var(--font-display); font-size: 1.25rem; color: var(--accent); font-weight: 600; margin-top: 0.2rem; }
+        .contents-list { list-style: none; padding-left: 0; counter-reset: contents; }
+        .contents-list li { counter-increment: contents; padding: 0.6rem 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 1rem; }
+        .contents-list li:last-child { border-bottom: none; }
+        .contents-list li::before { content: counter(contents, decimal-leading-zero); font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 2rem; }
+        .contents-list a { color: var(--text-primary); text-decoration: none; }
+        .contents-list a:hover { color: var(--accent); }
+        .footer { text-align: center; padding: 3rem 1.5rem; color: var(--text-secondary); font-size: 0.85rem; border-top: 1px solid var(--border); max-width: var(--max-width); margin: 0 auto; }
+        .footer a { color: var(--accent); text-decoration: none; }
+        .katex { color: var(--text-primary); } .katex-display { margin: 1rem 0; overflow-x: auto; overflow-y: hidden; }
+        @media (max-width: 640px) { .slide { padding: 3rem 1rem; min-height: auto; } .slide-number { font-size: 3rem; top: 1.5rem; right: 1rem; } .slide h2 { font-size: 1.5rem; } .diagram-grid.cols-2, .diagram-grid.cols-3 { grid-template-columns: 1fr; } .hero h1 { font-size: 1.8rem; } table { font-size: 0.78rem; } }
+    </style>
+</head>
+<body>
+
+<header class="hero">
+    <div class="series-label">Linear Algebra for AI &mdash; Presentation 04</div>
+    <h1>Inner Products, <span class="accent">Norms &amp; Geometry</span></h1>
+    <p class="subtitle">Length, angle, and orthogonality &mdash; the geometric language behind cosine similarity, attention scores, the 1/&radic;d scale, and why random high-dimensional vectors are almost orthogonal.</p>
+
+    <div class="tags">
+        <span class="tag">dot product</span><span class="tag">cosine</span>
+        <span class="tag">norm</span><span class="tag">orthogonal</span>
+        <span class="tag">Cauchy-Schwarz</span><span class="tag">attention scale</span>
+    </div>
+
+    <div class="pipeline">
+        <span class="pipeline-step">dot product</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">norm = self-dot</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">cosine = normalised dot</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">attention score</span>
+    </div>
+</header>
+
+<section class="slide" id="slide-00">
+    <div class="slide-number">00</div>
+    <h2>Topics We'll Cover</h2>
+    <ul class="contents-list">
+        <li><a href="#slide-01">The Dot Product Three Ways</a></li>
+        <li><a href="#slide-02">Norms &mdash; Lp and Friends</a></li>
+        <li><a href="#slide-03">Cauchy-Schwarz &amp; the Triangle Inequality</a></li>
+        <li><a href="#slide-04">Cosine Similarity</a></li>
+        <li><a href="#slide-05">Orthogonality &amp; Projection (Preview)</a></li>
+        <li><a href="#slide-06">General Inner Products: Mahalanobis &amp; the Gram Matrix</a></li>
+        <li><a href="#slide-07">Concentration: Random Vectors are Almost Orthogonal</a></li>
+        <li><a href="#slide-08">Why Attention Scales by 1/&radic;d</a></li>
+        <li><a href="#slide-09">Interactive: Cosine Similarity Explorer</a></li>
+        <li><a href="#slide-10">Cheat Sheet</a></li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-01">
+    <div class="slide-number">01</div>
+    <h2>The Dot Product Three Ways</h2>
+    <p>The dot product on $\mathbb{R}^n$ has three equivalent definitions; the elegance is that they all give the same number.</p>
+
+    <div class="diagram-grid cols-3">
+        <div class="diagram-panel accent-border">
+            <h4>Algebraic</h4>
+            <p>$$\langle \mathbf{u}, \mathbf{v} \rangle = \sum_{i=1}^n u_i v_i.$$</p>
+            <p>The component-wise sum of products. The thing the GPU computes.</p>
+        </div>
+        <div class="diagram-panel y">
+            <h4>Matrix</h4>
+            <p>$$\langle \mathbf{u}, \mathbf{v} \rangle = \mathbf{u}^\top \mathbf{v}.$$</p>
+            <p>One row times one column. The matmul atom.</p>
+        </div>
+        <div class="diagram-panel g">
+            <h4>Geometric</h4>
+            <p>$$\langle \mathbf{u}, \mathbf{v} \rangle = \|\mathbf{u}\|\,\|\mathbf{v}\|\,\cos\theta.$$</p>
+            <p>Length-times-length-times-cosine-of-angle. The picture in $\mathbb{R}^2$.</p>
+        </div>
+    </div>
+
+    <h3>The four axioms</h3>
+    <p>An <strong>inner product</strong> on a real vector space $V$ is a function $\langle \cdot, \cdot \rangle : V \times V \to \mathbb{R}$ satisfying:</p>
+    <ol>
+        <li><strong>Symmetry:</strong> $\langle \mathbf{u}, \mathbf{v} \rangle = \langle \mathbf{v}, \mathbf{u} \rangle$.</li>
+        <li><strong>Linearity in the first argument:</strong> $\langle \alpha \mathbf{u} + \beta \mathbf{w}, \mathbf{v} \rangle = \alpha \langle \mathbf{u}, \mathbf{v} \rangle + \beta \langle \mathbf{w}, \mathbf{v} \rangle$.</li>
+        <li><strong>Positive definiteness:</strong> $\langle \mathbf{u}, \mathbf{u} \rangle \ge 0$, with equality iff $\mathbf{u} = \mathbf{0}$.</li>
+        <li>(Symmetry + linearity-in-1st &rArr; linearity in 2nd by free.)</li>
+    </ol>
+    <p>Any function satisfying these defines a "geometry" on the space &mdash; a notion of length and angle. The standard dot product on $\mathbb{R}^n$ is one example, the Mahalanobis inner product (slide 06) is another.</p>
+</section>
+
+<section class="slide" id="slide-02">
+    <div class="slide-number">02</div>
+    <h2>Norms &mdash; Lp and Friends</h2>
+    <p>A <strong>norm</strong> $\|\cdot\| : V \to [0, \infty)$ satisfies three properties: $\|\mathbf{v}\| = 0 \iff \mathbf{v} = \mathbf{0}$; $\|\alpha \mathbf{v}\| = |\alpha|\,\|\mathbf{v}\|$; and $\|\mathbf{u} + \mathbf{v}\| \le \|\mathbf{u}\| + \|\mathbf{v}\|$ (the triangle inequality).</p>
+
+    <p>Every inner product gives a norm: $\|\mathbf{v}\| = \sqrt{\langle \mathbf{v}, \mathbf{v} \rangle}$. But not every norm comes from an inner product (only the L2 norm does).</p>
+
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Norm</th><th>Formula</th><th>Where it shows up in ML</th></tr></thead>
+            <tbody>
+                <tr><td>$L^1$ (taxicab)</td><td>$\sum_i |v_i|$</td><td>Lasso regularisation, sparse-coding objective, total-variation losses.</td></tr>
+                <tr><td>$L^2$ (Euclidean)</td><td>$\sqrt{\sum_i v_i^2}$</td><td>Default everywhere &mdash; weight decay, MSE, gradient norms, embedding distance, attention scaling.</td></tr>
+                <tr><td>$L^\infty$ (max)</td><td>$\max_i |v_i|$</td><td>Adversarial $\varepsilon$-balls, max-perturbation attack budgets, PGD attacks.</td></tr>
+                <tr><td>$L^p$ ($1 \le p &lt; \infty$)</td><td>$(\sum_i |v_i|^p)^{1/p}$</td><td>Less common in ML; appears in regularisation theory and analysis of generalisation bounds.</td></tr>
+                <tr><td>Frobenius (matrix)</td><td>$\sqrt{\sum_{ij} A_{ij}^2}$</td><td>Treats a matrix as a flat vector. Standard ML matrix norm; the Eckart-Young theorem (deck 07) is in Frobenius norm.</td></tr>
+                <tr><td>Spectral (matrix)</td><td>$\sigma_1(A)$ (largest singular value)</td><td>Lipschitz constant of a linear layer; used in spectral normalisation (Miyato et al. 2018) for GAN stability.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p>$L^1$, $L^2$ and $L^\infty$ unit balls in $\mathbb{R}^2$ are a square rotated 45° (a diamond), a circle, and an axis-aligned square. The corners of the $L^1$ ball sit on the axes &mdash; this is the geometric reason Lasso encourages sparse solutions: the optimum tends to land at a corner where some coordinates are exactly zero.</p>
+</section>
+
+<section class="slide" id="slide-03">
+    <div class="slide-number">03</div>
+    <h2>Cauchy-Schwarz &amp; the Triangle Inequality</h2>
+    <p>The most-cited inequality in linear algebra:</p>
+    <p>$$|\langle \mathbf{u}, \mathbf{v} \rangle| \le \|\mathbf{u}\|\,\|\mathbf{v}\|.$$</p>
+    <p>Equality iff $\mathbf{u}$ and $\mathbf{v}$ are parallel. Reading: the absolute dot product is bounded by the product of the lengths &mdash; equivalently, $|\cos\theta| \le 1$.</p>
+
+    <h3>Proof in two lines (real, $\mathbf{v} \neq \mathbf{0}$)</h3>
+    <p>For any $t \in \mathbb{R}$, $0 \le \|\mathbf{u} - t\mathbf{v}\|^2 = \|\mathbf{u}\|^2 - 2t \langle \mathbf{u}, \mathbf{v} \rangle + t^2 \|\mathbf{v}\|^2$. Choose $t = \langle \mathbf{u}, \mathbf{v} \rangle / \|\mathbf{v}\|^2$ to minimise the RHS; the minimum is $\|\mathbf{u}\|^2 - \langle \mathbf{u}, \mathbf{v} \rangle^2 / \|\mathbf{v}\|^2 \ge 0$. Rearranging gives Cauchy-Schwarz.</p>
+
+    <h3>Triangle inequality, as a corollary</h3>
+    <p>$$\|\mathbf{u} + \mathbf{v}\|^2 = \|\mathbf{u}\|^2 + 2\langle \mathbf{u}, \mathbf{v} \rangle + \|\mathbf{v}\|^2 \le \|\mathbf{u}\|^2 + 2\|\mathbf{u}\|\|\mathbf{v}\| + \|\mathbf{v}\|^2 = (\|\mathbf{u}\| + \|\mathbf{v}\|)^2.$$</p>
+    <p>Cauchy-Schwarz is doing the work in the middle.</p>
+
+    <div class="callout">
+        <div class="callout-label">Why ML practitioners care</div>
+        <p>Cauchy-Schwarz bounds <em>everything</em> built from dot products. Attention scores live in $[-\|\mathbf{q}\|\|\mathbf{k}\|, +\|\mathbf{q}\|\|\mathbf{k}\|]$. A normalisation step ($\|\mathbf{q}\| = \|\mathbf{k}\| = 1$) tightens this to $[-1, 1]$. The Lipschitz-bounded layers used in GAN stabilisation lean on Cauchy-Schwarz to get worst-case behaviour. The attention $1/\sqrt{d}$ scaling depends on what Cauchy-Schwarz <em>doesn't</em> tell you &mdash; the typical case &mdash; which we cover on slide 08.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-04">
+    <div class="slide-number">04</div>
+    <h2>Cosine Similarity</h2>
+    <p>The cosine similarity of $\mathbf{u}, \mathbf{v}$ is the cosine of the angle between them:</p>
+    <p>$$\mathrm{cos\_sim}(\mathbf{u}, \mathbf{v}) = \frac{\langle \mathbf{u}, \mathbf{v} \rangle}{\|\mathbf{u}\|\,\|\mathbf{v}\|}.$$</p>
+
+    <p>Range $[-1, 1]$ (by Cauchy-Schwarz). $+1$ = same direction, $-1$ = opposite, $0$ = orthogonal. This is the standard similarity score for embeddings in retrieval, RAG, deduplication, and most metric-learning losses.</p>
+
+    <h3>Why cosine, not Euclidean distance?</h3>
+    <p>For embeddings, <em>direction</em> is meaningful but length is often a side-effect of token frequency, training instability, or the length of an input sequence. A short query and a long document can have similar topical content but very different L2 norms; cosine ignores that. Equivalently, cosine is the dot product after L2-normalising both vectors.</p>
+
+    <h3>Cosine vs dot vs Euclidean &mdash; the relations</h3>
+    <p>If $\hat{\mathbf{u}}, \hat{\mathbf{v}}$ are unit vectors,</p>
+    <p>$$\|\hat{\mathbf{u}} - \hat{\mathbf{v}}\|^2 = 2 - 2\,\mathrm{cos\_sim}(\mathbf{u}, \mathbf{v}).$$</p>
+    <p>Squared Euclidean distance on the unit sphere is a monotone function of cosine similarity. So nearest-neighbour search by cosine and by L2 distance give identical orderings (after normalisation) &mdash; a fact that vector-DB indexes (FAISS, ScaNN, HNSW) exploit.</p>
+
+    <div class="callout">
+        <div class="callout-label">Embedding-space conventions</div>
+        <p>OpenAI <code>text-embedding-3</code>, Cohere <code>embed-v3</code>, Voyage and most modern embedders return L2-normalised vectors. Cosine similarity reduces to a plain dot product, which is faster and SIMD-friendly. Always check whether your embedder returns normalised vectors before reaching for <code>cos_sim</code> &mdash; if it does, <code>v1 @ v2</code> is enough.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-05">
+    <div class="slide-number">05</div>
+    <h2>Orthogonality &amp; Projection (Preview)</h2>
+    <p>Two vectors are <strong>orthogonal</strong> when $\langle \mathbf{u}, \mathbf{v} \rangle = 0$. A set $\{\mathbf{e}_1, \ldots, \mathbf{e}_n\}$ is <strong>orthonormal</strong> when its members are unit vectors and pairwise orthogonal &mdash; the simplest possible basis.</p>
+
+    <h3>Why orthonormal is so much nicer</h3>
+    <ul>
+        <li>If $\mathbf{v} = c_1 \mathbf{e}_1 + \cdots + c_n \mathbf{e}_n$ with the $\mathbf{e}_i$ orthonormal, then $c_i = \langle \mathbf{v}, \mathbf{e}_i \rangle$. <em>One inner product per coordinate &mdash; no system of equations to solve.</em></li>
+        <li>Pythagoras applies: $\|\mathbf{v}\|^2 = \sum_i c_i^2$.</li>
+        <li>The matrix $Q$ whose columns are an orthonormal basis satisfies $Q^\top Q = I$. Inverse and transpose are the same thing &mdash; the cheapest possible inverse.</li>
+    </ul>
+
+    <p>The closest point in a subspace $U$ to a given vector $\mathbf{v}$ is the orthogonal <strong>projection</strong> of $\mathbf{v}$ onto $U$ &mdash; the unique $\hat{\mathbf{v}} \in U$ with $\mathbf{v} - \hat{\mathbf{v}} \perp U$. This is the foundation of least-squares, of the FFN's projection structure (deck 05) and of every "best low-rank approximation" theorem.</p>
+
+    <div class="callout">
+        <div class="callout-label">Why this slide is short</div>
+        <p>Deck 05 is entirely about projections. This slide is the bridge: projection is geometry built out of inner products, and that's all it is.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-06">
+    <div class="slide-number">06</div>
+    <h2>General Inner Products: Mahalanobis &amp; the Gram Matrix</h2>
+    <p>The standard dot product on $\mathbb{R}^n$ is one inner product. Many others exist. The general form on $\mathbb{R}^n$ is</p>
+    <p>$$\langle \mathbf{u}, \mathbf{v} \rangle_M = \mathbf{u}^\top M \mathbf{v}$$</p>
+    <p>for any symmetric positive-definite $M$. The standard one is $M = I$.</p>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Mahalanobis distance</h4>
+            <p>$$d_M(\mathbf{u}, \mathbf{v}) = \sqrt{(\mathbf{u} - \mathbf{v})^\top \Sigma^{-1} (\mathbf{u} - \mathbf{v})}$$</p>
+            <p>with $\Sigma$ the covariance of the data. Distances measured in standard deviations along the principal axes &mdash; whitening makes Mahalanobis equal to Euclidean.</p>
+        </div>
+        <div class="diagram-panel y">
+            <h4>Gram matrix</h4>
+            <p>For a list of vectors $\mathbf{v}_1, \ldots, \mathbf{v}_n$, the Gram matrix has entries $G_{ij} = \langle \mathbf{v}_i, \mathbf{v}_j \rangle$. Symmetric, positive semi-definite, captures all pairwise geometry. The kernel matrix in kernel methods is exactly a Gram matrix in feature space.</p>
+        </div>
+    </div>
+
+    <h3>The kernel trick, in two sentences</h3>
+    <p>Define a feature map $\phi : \mathcal{X} \to V$ and an inner product on $V$. Many ML algorithms (SVM, kernel ridge, GP) only ever access $\phi(\mathbf{x}_i)$ through inner products $\langle \phi(\mathbf{x}_i), \phi(\mathbf{x}_j) \rangle$, so you can use them without ever computing $\phi$ explicitly &mdash; just a kernel function $k(\mathbf{x}_i, \mathbf{x}_j)$ that returns the inner product directly. <em>This is what made SVMs powerful in the 90s and is the precise mathematical content of "attention is approximate kernel evaluation".</em></p>
+</section>
+
+<section class="slide" id="slide-07">
+    <div class="slide-number">07</div>
+    <h2>Concentration: Random Vectors are Almost Orthogonal</h2>
+    <p>A foundational fact about high dimensions:</p>
+
+    <p>Let $\mathbf{u}, \mathbf{v}$ be two independent vectors with i.i.d. $\mathcal{N}(0, 1)$ entries in $\mathbb{R}^d$. Then</p>
+    <p>$$\mathbb{E}[\langle \mathbf{u}, \mathbf{v} \rangle] = 0, \quad \mathrm{Var}[\langle \mathbf{u}, \mathbf{v} \rangle] = d.$$</p>
+    <p>So the dot product has standard deviation $\sqrt{d}$, and after normalisation by lengths (each $\approx \sqrt{d}$), the cosine similarity has standard deviation $1/\sqrt{d}$.</p>
+
+    <p>For $d = 4096$, $1/\sqrt{d} \approx 0.0156$. Two random Gaussian vectors in $\mathbb{R}^{4096}$ have cosine similarity within $\pm 0.05$ of zero with overwhelming probability &mdash; they are <strong>almost orthogonal</strong>.</p>
+
+    <h3>Why this matters</h3>
+    <ul>
+        <li><strong>Embedding capacity.</strong> A $d$-dim space has at most $d$ strictly orthogonal directions, but exponentially many <em>nearly</em>-orthogonal ones (Johnson-Lindenstrauss). LLMs exploit this via superposition (deck 01).</li>
+        <li><strong>Random initialisation works.</strong> If you initialise weights randomly, the input directions are unrelated to the previous layer's directions &mdash; signal doesn't blow up or vanish through random rotations.</li>
+        <li><strong>Distance in high dimension is uninformative without scaling.</strong> Pairwise Euclidean distances among random vectors all converge to $\sqrt{2d}$ in expectation. The "curse of dimensionality" is partly that distances stop discriminating.</li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-08">
+    <div class="slide-number">08</div>
+    <h2>Why Attention Scales by 1/&radic;d</h2>
+    <p>The scaled dot-product attention score:</p>
+    <p>$$\mathrm{score}(\mathbf{q}, \mathbf{k}) = \frac{\mathbf{q}^\top \mathbf{k}}{\sqrt{d}}.$$</p>
+
+    <p>Why $\sqrt{d}$ and not $d$ or $d^2$? It's the previous slide.</p>
+
+    <h3>The argument from "Attention Is All You Need" (&sect;3.2.1)</h3>
+    <p>Suppose $\mathbf{q}, \mathbf{k}$ have entries with mean 0 and variance 1. Then</p>
+    <p>$$\mathbf{q}^\top \mathbf{k} = \sum_{i=1}^d q_i k_i, \qquad \mathrm{Var}[\mathbf{q}^\top \mathbf{k}] = d.$$</p>
+    <p>So the un-scaled dot product has standard deviation $\sqrt{d}$. Without the scale, the magnitudes that go into softmax grow with $d$ &mdash; for $d = 64$ they're already on the order of $\pm 8$. Softmax saturates: all probability mass concentrates on the single largest argument, gradients through everything else go to zero, learning stalls.</p>
+
+    <p>Dividing by $\sqrt{d}$ keeps the score's standard deviation at $\approx 1$ regardless of head dimension. Softmax stays in its responsive range; gradients flow through all keys, not just the winner.</p>
+
+    <div class="callout">
+        <div class="callout-label">Empirical confirmation, the easy way</div>
+        <p>Train two attention layers, one with $1/\sqrt{d}$, one without. The unscaled one stalls inside the first thousand steps for $d \ge 64$ &mdash; the score range is too wide for softmax to be useful. The Vaswani et al. 2017 paper (Section 3.2.1) gives this as the explicit motivation. <em>The whole choice is downstream of "random vectors are almost orthogonal but not exactly &mdash; the leftover dot product grows like $\sqrt{d}$".</em></p>
+    </div>
+</section>
+
+<section class="slide" id="slide-09">
+    <div class="slide-number">09</div>
+    <h2>Interactive: Cosine Similarity Explorer</h2>
+    <p>Drag $\mathbf{u}$ and $\mathbf{v}$. The widget shows their L2 lengths, dot product, cosine similarity (= $\cos\theta$), and Euclidean distance. Notice that as $\mathbf{u}$ rotates around $\mathbf{v}$, the dot product traces a cosine curve.</p>
+
+    <div class="canvas-wrap">
+        <svg id="cs-svg" viewBox="0 0 600 420" width="600" height="420" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <marker id="ah-cu" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0 0, 8 4, 0 8" fill="#a78bfa"/></marker>
+                <marker id="ah-cv" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0 0, 8 4, 0 8" fill="#34d399"/></marker>
+            </defs>
+            <rect width="600" height="420" fill="#0d1117"/>
+            <g id="cs-grid"></g>
+            <path id="cs-arc" d="" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <line id="cs-vec-u" x1="300" y1="210" x2="430" y2="210" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#ah-cu)"/>
+            <line id="cs-vec-v" x1="300" y1="210" x2="370" y2="100" stroke="#34d399" stroke-width="2.5" marker-end="url(#ah-cv)"/>
+            <circle id="cs-head-u" cx="430" cy="210" r="8" fill="rgba(167,139,250,0.45)" stroke="#a78bfa" style="cursor:grab"/>
+            <circle id="cs-head-v" cx="370" cy="100" r="8" fill="rgba(52,211,153,0.45)" stroke="#34d399" style="cursor:grab"/>
+            <text id="cs-theta" x="320" y="180" fill="#fbbf24" font-family="JetBrains Mono" font-size="14">θ</text>
+        </svg>
+    </div>
+
+    <div class="metric-grid">
+        <div class="metric"><div class="metric-label">‖u‖</div><div class="metric-value" id="m-nu">2.60</div></div>
+        <div class="metric"><div class="metric-label">‖v‖</div><div class="metric-value" id="m-nv">2.60</div></div>
+        <div class="metric"><div class="metric-label">u·v</div><div class="metric-value" id="m-dot">3.50</div></div>
+        <div class="metric"><div class="metric-label">cos θ</div><div class="metric-value" id="m-cos">0.52</div></div>
+        <div class="metric"><div class="metric-label">θ°</div><div class="metric-value" id="m-deg">59°</div></div>
+        <div class="metric"><div class="metric-label">‖u-v‖</div><div class="metric-value" id="m-dist">2.55</div></div>
+    </div>
+
+    <script>
+    (function(){
+        var svg = document.getElementById('cs-svg');
+        var cx = 300, cy = 210, scale = 50;
+        var u = {x: 2.6, y: 0};
+        var v = {x: 1.4, y: 2.2};
+        var dragging = null;
+        var g = document.getElementById('cs-grid');
+        var gh = '';
+        for (var k = -6; k <= 6; k++) {
+            gh += '<line x1="'+(cx+k*scale)+'" y1="0" x2="'+(cx+k*scale)+'" y2="420" stroke="#21262d" stroke-width="0.5"/>';
+            gh += '<line x1="0" y1="'+(cy+k*scale)+'" x2="600" y2="'+(cy+k*scale)+'" stroke="#21262d" stroke-width="0.5"/>';
+        }
+        gh += '<line x1="'+cx+'" y1="0" x2="'+cx+'" y2="420" stroke="#3a3a3a" stroke-width="1"/>';
+        gh += '<line x1="0" y1="'+cy+'" x2="600" y2="'+cy+'" stroke="#3a3a3a" stroke-width="1"/>';
+        g.innerHTML = gh;
+        function px(x){return cx + x*scale;}
+        function py(y){return cy - y*scale;}
+        function render(){
+            document.getElementById('cs-vec-u').setAttribute('x2', px(u.x));
+            document.getElementById('cs-vec-u').setAttribute('y2', py(u.y));
+            document.getElementById('cs-head-u').setAttribute('cx', px(u.x));
+            document.getElementById('cs-head-u').setAttribute('cy', py(u.y));
+            document.getElementById('cs-vec-v').setAttribute('x2', px(v.x));
+            document.getElementById('cs-vec-v').setAttribute('y2', py(v.y));
+            document.getElementById('cs-head-v').setAttribute('cx', px(v.x));
+            document.getElementById('cs-head-v').setAttribute('cy', py(v.y));
+            // arc between u and v
+            var nu = Math.hypot(u.x, u.y), nv = Math.hypot(v.x, v.y);
+            var au = Math.atan2(u.y, u.x), av = Math.atan2(v.y, v.x);
+            var ang = av - au;
+            while (ang > Math.PI) ang -= 2*Math.PI;
+            while (ang < -Math.PI) ang += 2*Math.PI;
+            var r = 0.7 * scale;
+            var sweep = ang > 0 ? 0 : 1;
+            var arcPath = '';
+            if (nu > 0.05 && nv > 0.05) {
+                var x1 = cx + r*Math.cos(au), y1 = cy - r*Math.sin(au);
+                var x2 = cx + r*Math.cos(av), y2 = cy - r*Math.sin(av);
+                arcPath = 'M '+x1+' '+y1+' A '+r+' '+r+' 0 0 '+sweep+' '+x2+' '+y2;
+            }
+            document.getElementById('cs-arc').setAttribute('d', arcPath);
+            // metrics
+            var dot = u.x*v.x + u.y*v.y;
+            var cos = (nu*nv > 0.001) ? dot/(nu*nv) : 0;
+            var deg = Math.acos(Math.max(-1, Math.min(1, cos))) * 180 / Math.PI;
+            var dist = Math.hypot(u.x-v.x, u.y-v.y);
+            document.getElementById('m-nu').textContent = nu.toFixed(2);
+            document.getElementById('m-nv').textContent = nv.toFixed(2);
+            document.getElementById('m-dot').textContent = dot.toFixed(2);
+            document.getElementById('m-cos').textContent = cos.toFixed(2);
+            document.getElementById('m-deg').textContent = deg.toFixed(0)+'°';
+            document.getElementById('m-dist').textContent = dist.toFixed(2);
+        }
+        function svgPoint(evt) {
+            var pt = svg.createSVGPoint();
+            pt.x = evt.clientX; pt.y = evt.clientY;
+            return pt.matrixTransform(svg.getScreenCTM().inverse());
+        }
+        function startDrag(w){return function(e){dragging=w; e.preventDefault();};}
+        document.getElementById('cs-head-u').addEventListener('mousedown', startDrag('u'));
+        document.getElementById('cs-head-v').addEventListener('mousedown', startDrag('v'));
+        document.getElementById('cs-head-u').addEventListener('touchstart', startDrag('u'));
+        document.getElementById('cs-head-v').addEventListener('touchstart', startDrag('v'));
+        function move(e){
+            if (!dragging) return;
+            var ev = e.touches ? e.touches[0] : e;
+            var p = svgPoint(ev);
+            var nx = (p.x - cx)/scale, ny = -(p.y - cy)/scale;
+            nx = Math.round(nx*20)/20; ny = Math.round(ny*20)/20;
+            if (dragging === 'u') u = {x:nx, y:ny}; else v = {x:nx, y:ny};
+            render(); e.preventDefault();
+        }
+        window.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', function(){dragging=null;});
+        window.addEventListener('touchmove', move, {passive:false});
+        window.addEventListener('touchend', function(){dragging=null;});
+        render();
+    })();
+    </script>
+</section>
+
+<section class="slide" id="slide-10">
+    <div class="slide-number">10</div>
+    <h2>Cheat Sheet</h2>
+    <ul>
+        <li>The dot product on $\mathbb{R}^n$ has three equivalent definitions: component-sum, $\mathbf{u}^\top\mathbf{v}$, and $\|\mathbf{u}\|\|\mathbf{v}\|\cos\theta$.</li>
+        <li>An <strong>inner product</strong> is symmetric, linear, positive-definite. The dot product is one of many; Mahalanobis is another.</li>
+        <li>$L^2$ norm comes from an inner product. $L^1$ and $L^\infty$ don't, but they still satisfy the triangle inequality.</li>
+        <li><strong>Cauchy-Schwarz:</strong> $|\langle \mathbf{u},\mathbf{v}\rangle| \le \|\mathbf{u}\|\|\mathbf{v}\|$. Equivalently $|\cos\theta| \le 1$.</li>
+        <li><strong>Cosine similarity</strong> is the dot product after L2-normalisation. On the unit sphere, cosine and Euclidean distance are monotone-equivalent.</li>
+        <li><strong>Orthogonality</strong> means dot product is zero. <strong>Orthonormal</strong> bases make every coordinate a single inner product, no system to solve.</li>
+        <li>Two random Gaussian vectors in $\mathbb{R}^d$ have $\mathrm{cos\_sim}$ with std $\approx 1/\sqrt{d}$ &mdash; nearly orthogonal in high $d$.</li>
+        <li>The <strong>1/&radic;d scaling</strong> in attention exists because the unscaled dot product has std $\sqrt{d}$, which would saturate softmax.</li>
+    </ul>
+
+    <div class="callout">
+        <div class="callout-label">Read next</div>
+        <p>Deck <strong>05 &mdash; Projections, Up &amp; Down</strong> takes the geometry of inner products and uses it to project. We'll build the projection-matrix view of an FFN's up- and down-projections, the structural reason transformer MLPs go up by 4&times; and back down.</p>
+    </div>
+</section>
+
+<footer class="footer">
+    <p>Part of the <a href="https://github.com/BrendanJamesLynskey/LLM_Hub_Linear_Algebra">Linear Algebra for AI / ML</a> series. Sources: Vaswani et al., "Attention Is All You Need", NeurIPS 2017 (Section 3.2.1 on the $1/\sqrt{d}$ scale); Miyato et al., "Spectral Normalization for GANs", ICLR 2018; Johnson &amp; Lindenstrauss 1984.</p>
+</footer>
+
+</body>
+</html>
